@@ -9,7 +9,7 @@ subnet_cidr: 10.50.1.0/24
 
 security_group_name: aap-sg
 security_group_description: Security group managed by AAP
-ami: ami-0d8d3b1122e36c000
+ami: ami-0d7a208c0d9898aec
 
 ssh_key_name: ec2-aap
 
