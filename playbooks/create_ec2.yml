@@ -1,0 +1,135 @@
+---
+- name: Create AWS infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/aws_ec2_vars.yml
+
+  tasks:
+
+#################################################
+# VPC
+#################################################
+
+  - name: Create VPC
+    amazon.aws.ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ region }}"
+      dns_support: true
+      dns_hostnames: true
+    register: vpc
+
+#################################################
+# Internet Gateway
+#################################################
+
+  - name: Create IGW
+    amazon.aws.ec2_vpc_igw:
+      vpc_id: "{{ vpc.vpc.id }}"
+      region: "{{ region }}"
+      state: present
+    register: igw
+
+#################################################
+# Subnet
+#################################################
+
+  - name: Create subnet
+    amazon.aws.ec2_vpc_subnet:
+      vpc_id: "{{ vpc.vpc.id }}"
+      cidr: "{{ subnet_cidr }}"
+      az: "{{ availability_zone }}"
+      map_public: true
+      region: "{{ region }}"
+    register: subnet
+
+#################################################
+# Route table
+#################################################
+
+  - name: Create public route
+    amazon.aws.ec2_vpc_route_table:
+      vpc_id: "{{ vpc.vpc.id }}"
+      region: "{{ region }}"
+      subnets:
+        - "{{ subnet.subnet.id }}"
+      routes:
+        - dest: 0.0.0.0/0
+          gateway_id: "{{ igw.gateway_id }}"
+
+#################################################
+# Security group
+#################################################
+
+  - name: Create security group
+    amazon.aws.ec2_security_group:
+      name: "{{ security_group_name }}"
+      description: "{{ security_group_description }}"
+      vpc_id: "{{ vpc.vpc.id }}"
+      region: "{{ region }}"
+    register: sg
+
+#################################################
+# Add security group rules from list
+#################################################
+
+  - name: Create SG rules
+    amazon.aws.ec2_security_group:
+      name: "{{ security_group_name }}"
+      region: "{{ region }}"
+      rules:
+        - proto: tcp
+          ports:
+            - "{{ item.port }}"
+          cidr_ip: "{{ item.cidr }}"
+          rule_desc: "{{ item.description }}"
+    loop: "{{ security_group_ports }}"
+
+#################################################
+# Get latest RHEL9 AMI
+#################################################
+
+  - name: Find RHEL 9 AMI
+    amazon.aws.ec2_ami_info:
+      region: "{{ region }}"
+      owners:
+        - "309956199498"
+      filters:
+        name: "RHEL-9*_HVM-*-x86_64-*-Hourly2-GP3"
+    register: ami
+
+  - name: Select newest AMI
+    ansible.builtin.set_fact:
+      rhel9_ami: "{{ (ami.images | sort(attribute='creation_date') | last).image_id }}"
+
+#################################################
+# Create EC2 instances from list
+#################################################
+
+  - name: Launch EC2 instances
+    amazon.aws.ec2_instance:
+      name: "{{ item.name }}"
+      instance_type: "{{ item.instance_type }}"
+      image_id: "{{ ami }}"
+      key_name: "{{ ssh_key_name }}"
+      region: "{{ region }}"
+      vpc_subnet_id: "{{ subnet.subnet.id }}"
+      security_group: "{{ security_group_name }}"
+      network:
+        assign_public_ip: true
+      tags: "{{ item.tags }}"
+      wait: true
+    loop: "{{ ec2_instances }}"
+    register: ec2_results
+
+#################################################
+# Show instance IPs
+#################################################
+
+  - name: Show public IPs
+    ansible.builtin.debug:
+      msg: "{{ item.instances[0].public_ip_address }}"
+    loop: "{{ ec2_results.results }}"

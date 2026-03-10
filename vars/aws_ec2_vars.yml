@@ -1,0 +1,74 @@
+region: us-east-2
+availability_zone: us-east-2a
+
+vpc_name: aap-vpc
+vpc_cidr: 10.50.0.0/16
+
+subnet_name: aap-public-subnet
+subnet_cidr: 10.50.1.0/24
+
+security_group_name: aap-sg
+security_group_description: Security group managed by AAP
+ami: ami-0d8d3b1122e36c000
+
+ssh_key_name: ec2-aap
+
+# SECURITY GROUP PORTS
+security_group_ports:
+  - port: 22
+    cidr: 0.0.0.0/0
+    description: SSH
+
+  - port: 80
+    cidr: 0.0.0.0/0
+    description: HTTP
+
+  - port: 443
+    cidr: 0.0.0.0/0
+    description: HTTPS
+
+  - port: 16379
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+
+  - port: 6379
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+
+  - port: 6443
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+  
+  - port: 8443
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+
+  - port: 8446
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+
+  - port: 27199
+    cidr: 0.0.0.0/0
+    description: Custom TCP
+
+  - port: 5432
+    cidr: 0.0.0.0/0
+    description: PostgresSQL
+
+# EC2 INSTANCES
+ec2_instances:
+
+  - name: controller
+    instance_type: t3.xlarge
+    tags:
+      Role: web
+
+  - name: gateway
+    instance_type: t3.xlarge
+    tags:
+      Role: web
+
+  - name: hub
+    instance_type: t3.xlarge
+    tags:
+      Role: app
