@@ -79,6 +79,7 @@
   - name: Create SG rules
     amazon.aws.ec2_security_group:
       name: "{{ security_group_name }}"
+      description: "{{ security_group_description }}"
       region: "{{ region }}"
       rules:
         - proto: tcp
