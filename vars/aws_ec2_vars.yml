@@ -71,5 +71,3 @@ ec2_instances:
 
   - name: hub
     instance_type: t3.xlarge
-    tags:
-      Role: aap
