@@ -113,7 +113,12 @@
         - "sg_result.group_id={{ sg.group_id }}"
         - "item={{ item }}"
     loop: "{{ ec2_instances }}"
-
+    
+  - name: Debug tag lengths
+    ansible.builtin.debug:
+      msg: "Instance {{ item.name }} has a tag value exceeding 255 chars"
+    loop: "{{ ec2_instances }}"
+    when: "item.tags | default({}) | dict2items | map(attribute='value') | map('string') | map('length') | select('gt', 255) | list | length > 0"
 #################################################
 # Create EC2 instances from list
 #################################################
