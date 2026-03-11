@@ -125,7 +125,7 @@
 
   - name: Launch EC2 instances
     amazon.aws.ec2_instance:
-      name: controller
+      name: "{{ item.name }}"
       instance_type: "{{ instance_type }}"
       image_id: ami-0d7a208c0d9898aec
       key_name: "{{ ssh_key_name }}"
@@ -141,13 +141,5 @@
             volume_type: gp3
             delete_on_termination: true
       wait: true
+    loop: "{{ ec2_instances }}"
     register: ec2_results
-
-#################################################
-# Show instance IPs
-#################################################
-
-  - name: Show public IPs
-    ansible.builtin.debug:
-      msg: "{{ item.instances[0].public_ip_address }}"
-    loop: "{{ ec2_results.results }}"
