@@ -127,7 +127,7 @@
     amazon.aws.ec2_instance:
       name: controller
       instance_type: "{{ instance_type }}"
-      image_id: "{{ ami }}"
+      image_id: ami-0d7a208c0d9898aec
       key_name: "{{ ssh_key_name }}"
       region: "{{ region }}"
       vpc_subnet_id: "{{ subnet.subnet.id }}"
