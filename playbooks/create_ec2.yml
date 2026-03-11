@@ -126,10 +126,15 @@
       key_name: "{{ ssh_key_name }}"
       region: "{{ region }}"
       vpc_subnet_id: "{{ subnet.subnet.id }}"
-      security_groups: 
-        - "{{ security_group_name }}"
+      security_group: "{{ security_group_name }}"
       network:
         assign_public_ip: true
+      volumes:
+        - device_name: /dev/sda1
+          ebs:
+            volume_size: 60
+            volume_type: gp3
+            delete_on_termination: true
       tags: >-
         {{
           {'Name': item.name}
