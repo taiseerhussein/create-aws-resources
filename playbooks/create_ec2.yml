@@ -106,6 +106,14 @@
     ansible.builtin.set_fact:
       rhel9_ami: "{{ (ami.images | sort(attribute='creation_date') | last).image_id }}"
 
+  - name: Show SG value being passed
+    ansible.builtin.debug:
+      msg:
+        - "security_group_name={{ security_group_name }}"
+        - "sg_result.group_id={{ sg_result.group_id }}"
+        - "item={{ item }}"
+    loop: "{{ ec2_instances }}"
+
 #################################################
 # Create EC2 instances from list
 #################################################
@@ -118,10 +126,15 @@
       key_name: "{{ ssh_key_name }}"
       region: "{{ region }}"
       vpc_subnet_id: "{{ subnet.subnet.id }}"
-      security_group: "{{ security_group_name }}"
+      security_groups: 
+        - "{{ security_group_name }}"
       network:
         assign_public_ip: true
-      tags: "{{ item.tags }}"
+      tags: >-
+        {{
+          {'Name': item.name}
+          | combine(item.tags | default({}))
+        }}
       wait: true
     loop: "{{ ec2_instances }}"
     register: ec2_results
@@ -134,3 +147,4 @@
     ansible.builtin.debug:
       msg: "{{ item.instances[0].public_ip_address }}"
     loop: "{{ ec2_results.results }}"
+    

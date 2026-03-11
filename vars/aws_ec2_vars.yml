@@ -61,14 +61,14 @@ ec2_instances:
   - name: controller
     instance_type: t3.xlarge
     tags:
-      Role: web
+      Role: aap
 
   - name: gateway
     instance_type: t3.xlarge
     tags:
-      Role: web
+      Role: aap
 
   - name: hub
     instance_type: t3.xlarge
     tags:
-      Role: app
+      Role: aap
