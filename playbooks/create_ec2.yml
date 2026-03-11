@@ -120,8 +120,8 @@
 
   - name: Launch EC2 instances
     amazon.aws.ec2_instance:
-      name: "{{ item.name }}"
-      instance_type: "{{ item.instance_type }}"
+      # name: "{{ item.name }}"
+      instance_type: "{{ instance_type }}"
       image_id: "{{ ami }}"
       key_name: "{{ ssh_key_name }}"
       region: "{{ region }}"
@@ -135,13 +135,8 @@
             volume_size: 60
             volume_type: gp3
             delete_on_termination: true
-      tags: >-
-        {{
-          {'Name': item.name}
-          | combine(item.tags | default({}))
-        }}
       wait: true
-    loop: "{{ ec2_instances }}"
+      count: 3
     register: ec2_results
 
 #################################################
