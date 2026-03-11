@@ -113,7 +113,7 @@
         - "sg_result.group_id={{ sg.group_id }}"
         - "item={{ item }}"
     loop: "{{ ec2_instances }}"
-    
+  
   - name: Debug tag lengths
     ansible.builtin.debug:
       msg: "Instance {{ item.name }} has a tag value exceeding 255 chars"
