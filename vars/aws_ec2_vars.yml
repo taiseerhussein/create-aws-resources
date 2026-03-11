@@ -60,15 +60,18 @@ ec2_instances:
 
   - name: controller
     instance_type: t3.xlarge
+    image_id: ami-0d7a208c0d9898aec
     tags:
       Role: aap
 
   - name: gateway
     instance_type: t3.xlarge
+    image_id: ami-0d7a208c0d9898aec
     tags:
       Role: aap
 
   - name: hub
     instance_type: t3.xlarge
+    image_id: ami-0d7a208c0d9898aec
     tags:
       Role: aap

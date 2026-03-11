@@ -126,8 +126,8 @@
   - name: Launch EC2 instances
     amazon.aws.ec2_instance:
       name: "{{ item.name }}"
-      instance_type: "{{ instance_type }}"
-      image_id: ami-0d7a208c0d9898aec
+      instance_type: "{{ item.instance_type }}"
+      image_id: "{{ item.image_id }}"
       key_name: "{{ ssh_key_name }}"
       region: "{{ region }}"
       vpc_subnet_id: "{{ subnet.subnet.id }}"
