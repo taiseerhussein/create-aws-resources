@@ -125,7 +125,7 @@
 
   - name: Launch EC2 instances
     amazon.aws.ec2_instance:
-      # name: "{{ item.name }}"
+      name: controller
       instance_type: "{{ instance_type }}"
       image_id: "{{ ami }}"
       key_name: "{{ ssh_key_name }}"
@@ -141,7 +141,6 @@
             volume_type: gp3
             delete_on_termination: true
       wait: true
-      count: 3
     register: ec2_results
 
 #################################################
