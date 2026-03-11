@@ -110,7 +110,7 @@
     ansible.builtin.debug:
       msg:
         - "security_group_name={{ security_group_name }}"
-        - "sg_result.group_id={{ sg_result.group_id }}"
+        - "sg_result.group_id={{ sg.group_id }}"
         - "item={{ item }}"
     loop: "{{ ec2_instances }}"
 
@@ -147,4 +147,3 @@
     ansible.builtin.debug:
       msg: "{{ item.instances[0].public_ip_address }}"
     loop: "{{ ec2_results.results }}"
-    
