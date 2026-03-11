@@ -56,12 +56,23 @@
     - name: Gather facts
       ansible.builtin.setup:
 
-    - name: Register the system to Red Hat
-      community.general.redhat_subscription:
-        state: present
-        username: "{{ lookup('env', 'RHSM_USERNAME') }}"
-        password: "{{ lookup('env', 'RHSM_PASSWORD') }}"
-
+    # - name: Register the system to Red Hat
+    #   community.general.redhat_subscription:
+    #     state: present
+    #     username: "{{ lookup('env', 'RHSM_USERNAME') }}"
+    #     password: "{{ lookup('env', 'RHSM_PASSWORD') }}"
+    - name: Register system to Red Hat
+      ansible.builtin.command: >
+        subscription-manager register >
+        --username {{ lookup('env', 'RHSM_USERNAME') | quote }}
+        --password {{ lookup('env', 'RHSM_PASSWORD') | quote }}
+        --auto-attach
+      register: rhsm_register
+      changed_when: "'The system has been registered' in rhsm_register.stdout or 'The system has been registered' in rhsm_register.stderr"
+      failed_when:
+        - rhsm_register.rc != 0
+        - "'This system is already registered' not in rhsm_register.stderr"
+        - "'This system is already registered' not in rhsm_register.stdout"
     - name: Install firewalld
       ansible.builtin.package:
         name: firewalld
