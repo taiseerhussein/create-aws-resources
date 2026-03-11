@@ -1,0 +1,91 @@
+---
+- name: Build temporary inventory from created EC2 instances
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    region: us-east-2
+    ec2_name_filter:
+      - aap
+    
+
+  tasks:
+    - name: Query EC2 instances by Name tag
+      amazon.aws.ec2_instance_info:
+        region: "{{ region }}"
+        filters:
+          "tag:Name": "{{ item }}"
+          instance-state-name:
+            - pending
+            - running
+            - stopping
+            - stopped
+      loop: "{{ ec2_name_filter }}"
+      register: ec2_info_results
+
+    - name: Add instances with public IPs to temporary group
+      ansible.builtin.add_host:
+        name: "{{ item.instances[0].public_ip_address }}"
+        groups: new_rhel_ec2
+        ansible_host: "{{ item.instances[0].public_ip_address }}"
+        ansible_user: ec2-user
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      loop: "{{ ec2_info_results.results }}"
+      when:
+        - item.instances is defined
+        - item.instances | length > 0
+        - item.instances[0].public_ip_address is defined
+
+- name: Register RHEL and configure firewalld
+  hosts: new_rhel_ec2
+  gather_facts: false
+  become: true
+
+  vars:
+    firewall_ports:
+      - "5432/tcp"
+
+  tasks:
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for_connection:
+        delay: 15
+        sleep: 10
+        timeout: 600
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Register the system to Red Hat
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ lookup('env', 'RHSM_USERNAME') }}"
+        password: "{{ lookup('env', 'RHSM_PASSWORD') }}"
+
+    - name: Install firewalld
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+
+    - name: Enable and start firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open required firewall ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop: "{{ firewall_ports }}"
+
+    - name: Show open firewall ports
+      ansible.builtin.command: firewall-cmd --list-ports
+      register: firewall_ports_result
+      changed_when: false
+
+    - name: Print firewall ports
+      ansible.builtin.debug:
+        var: firewall_ports_result.stdout
