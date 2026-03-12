@@ -12,6 +12,10 @@ security_group_description: Security group managed by AAP
 ami: ami-0d7a208c0d9898aec
 
 ssh_key_name: ec2-aap
+ec2_name_filter:
+  - gateway
+  - controller
+  - hub
 
 # SECURITY GROUP PORTS
 security_group_ports:
