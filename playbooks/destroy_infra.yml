@@ -1,0 +1,117 @@
+---
+- name: Destroy AWS infrastructure created by AAP
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/aws_ec2_vars.yml
+
+  tasks:
+
+#########################################
+# Find EC2 instances
+#########################################
+
+  - name: Get EC2 instances
+    amazon.aws.ec2_instance_info:
+      region: "{{ region }}"
+      filters:
+        "tag:Role": aap
+    register: ec2_info
+
+#########################################
+# Terminate EC2
+#########################################
+
+  - name: Terminate EC2 instances
+    amazon.aws.ec2_instance:
+      region: "{{ region }}"
+      state: absent
+      instance_ids: "{{ ec2_info.instances | map(attribute='instance_id') | list }}"
+      wait: true
+    when: ec2_info.instances | length > 0
+
+#########################################
+# Delete Security Group
+#########################################
+
+  - name: Delete security group
+    amazon.aws.ec2_security_group:
+      name: "{{ security_group_name }}"
+      region: "{{ region }}"
+      state: absent
+    ignore_errors: true
+
+#########################################
+# Find VPC
+#########################################
+
+  - name: Get VPC info
+    amazon.aws.ec2_vpc_net_info:
+      region: "{{ region }}"
+      filters:
+        "tag:Name": "{{ vpc_name }}"
+    register: vpc_info
+
+#########################################
+# Find subnet
+#########################################
+
+  - name: Get subnet info
+    amazon.aws.ec2_vpc_subnet_info:
+      region: "{{ region }}"
+      filters:
+        "tag:Name": "{{ subnet_name }}"
+    register: subnet_info
+
+#########################################
+# Remove route table
+#########################################
+
+  - name: Delete route table
+    amazon.aws.ec2_vpc_route_table:
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+      region: "{{ region }}"
+      lookup: tag
+      tags:
+        Name: "{{ route_table_name }}"
+      state: absent
+    when: vpc_info.vpcs | length > 0
+    ignore_errors: true
+
+#########################################
+# Remove subnet
+#########################################
+
+  - name: Delete subnet
+    amazon.aws.ec2_vpc_subnet:
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+      cidr: "{{ subnet_cidr }}"
+      region: "{{ region }}"
+      state: absent
+    when: vpc_info.vpcs | length > 0
+    ignore_errors: true
+
+#########################################
+# Remove internet gateway
+#########################################
+
+  - name: Delete internet gateway
+    amazon.aws.ec2_vpc_igw:
+      region: "{{ region }}"
+      vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
+      state: absent
+    when: vpc_info.vpcs | length > 0
+    ignore_errors: true
+
+#########################################
+# Delete VPC
+#########################################
+
+  - name: Delete VPC
+    amazon.aws.ec2_vpc_net:
+      name: "{{ vpc_name }}"
+      cidr_block: "{{ vpc_cidr }}"
+      region: "{{ region }}"
+      state: absent
