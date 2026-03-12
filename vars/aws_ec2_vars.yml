@@ -6,6 +6,7 @@ vpc_cidr: 10.50.0.0/16
 
 subnet_name: aap-public-subnet
 subnet_cidr: 10.50.1.0/24
+route_table_name: aap-public-rt
 
 security_group_name: aap-sg
 security_group_description: Security group managed by AAP
