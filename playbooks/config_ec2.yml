@@ -7,9 +7,9 @@
   vars:
     region: us-east-2
     ec2_name_filter:
-      - gateway
-      - controller
-      - hub
+      - con-gateway
+      - con-controller
+      - con-hub
     
 
   tasks:
