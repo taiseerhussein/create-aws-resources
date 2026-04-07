@@ -10,7 +10,7 @@ route_table_name: aap-public-rt
 
 security_group_name: aap-sg
 security_group_description: Security group managed by AAP
-ami: ami-0d7a208c0d9898aec
+ami: ami-056244ee7f6e2feb8
 
 ssh_key_name: east-1-aap
 ec2_name_filter:
