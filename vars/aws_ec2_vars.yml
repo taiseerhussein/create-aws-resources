@@ -11,8 +11,7 @@ route_table_name: aap-public-rt
 security_group_name: aap-sg
 security_group_description: Security group managed by AAP
 ami: ami-0d7a208c0d9898aec
-
-ssh_key_name: ec2-aap
+ssh_key_name: east-1-aap
 ec2_name_filter:
   - gateway
   - controller
@@ -63,7 +62,7 @@ security_group_ports:
 # EC2 INSTANCES
 ec2_instances:
 
-  - name: controller
+  - name: co-controller
     instance_type: t3.xlarge
     image_id: ami-0d7a208c0d9898aec
     tags:
