@@ -8,6 +8,9 @@
     - ../vars/aws_ec2_vars.yml
 
   tasks:
+    - name: Debug Environment Variables (Check AWS keys)
+      ansible.builtin.debug:
+        var: ansible_env
     - name: Create SG rules
       amazon.aws.ec2_security_group:
         name: "{{ security_group_name }}"
