@@ -1,0 +1,53 @@
+
+- name: Register RHEL and configure firewalld
+  hosts: new_rhel_ec2
+  gather_facts: false
+  become: true
+
+  vars:
+    firewall_ports:
+      - "5432/tcp"
+
+  tasks:
+    - name: Wait for SSH to become available
+      ansible.builtin.wait_for_connection:
+        delay: 15
+        sleep: 10
+        timeout: 600
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Register the system to Red Hat
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ lookup('env', 'RHSM_USERNAME') }}"
+        password: "{{ lookup('env', 'RHSM_PASSWORD') }}"
+
+    - name: Install firewalld
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+
+    - name: Enable and start firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Open required firewall ports
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop: "{{ firewall_ports }}"
+
+    - name: Show open firewall ports
+      ansible.builtin.command: firewall-cmd --list-ports
+      register: firewall_ports_result
+      changed_when: false
+
+    - name: Print firewall ports
+      ansible.builtin.debug:
+        var: firewall_ports_result.stdout
