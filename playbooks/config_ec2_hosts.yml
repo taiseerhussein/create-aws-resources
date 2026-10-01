@@ -1,8 +1,11 @@
-
 - name: Register RHEL and configure firewalld
   hosts: new_rhel_ec2
   gather_facts: false
   become: true
+  collections:
+    - community.general
+    - ansible.posix
+    
 
   vars:
     firewall_ports:
